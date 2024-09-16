@@ -1,0 +1,22 @@
+---
+- name: add the official GitLab repository
+  get_url:
+    url: https://packages.gitlab.com/install/repositories/runner/{{ gitlab_runner_package_name }}/script.deb.sh
+    dest: /tmp/gitlab-runner.script.deb.sh
+    mode: "0744"
+
+- name: Install gitlab-runner repository
+  command: bash /tmp/gitlab-runner.script.deb.sh
+  args:
+    creates: /etc/apt/sources.list.d/runner_{{ gitlab_runner_package_name }}.list
+
+- name: Install gitLab-runner
+  apt:
+    name:
+      - gitlab-runner
+    state: present
+    update_cache: 'yes'
+
+- name: Register runner
+  shell: 'gitlab-runner register --non-interactive --url "{{ url }}" --registration-token "{{ token }}" --executor "docker" --docker-image {{ image }} --description "{{ description }}" --tag-list "{{ tag }}" --locked="false" --docker-volumes "/var/run/docker.sock:/var/run/docker.sock"'
+  when: result.stat.exists == False

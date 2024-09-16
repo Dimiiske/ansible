@@ -1,0 +1,51 @@
+---
+- name: Download and Extract Node Exporter
+  ansible.builtin.unarchive:
+    src: "{{ url_release }}"
+    dest: "/tmp"
+    remote_src: yes
+    mode: 0755
+  register: node_exporter_download_check
+
+- name: Replace node_exporter
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+    dest: "{{ node_exporter_path }}"
+    mode: 0755
+    remote_src: true
+  notify: restart node_exporter
+  when: node_exporter_download_check is changed
+
+- name: Create the node_exporter group
+  group:
+    name: "node_exporter"
+    state: present
+    system: true
+
+- name: Create the node_exporter user
+  user:
+    name: "node_exporter"
+    groups: "node_exporter"
+    append: true
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Create a systemd node_exporter.service
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    mode: 0644
+  register: node_exporter_service
+
+- name: Reload systemd daemon if node_exporter unit file was changed
+  systemd:
+    daemon_reload: true
+  notify: restart node_exporter
+  when: node_exporter_service is changed
+
+- name: Start and enable node_exporter
+  systemd:
+    name: node_exporter.service
+    state: "{{ node_exporter_state }}"
+    enabled: "{{ node_exporter_enable }}"

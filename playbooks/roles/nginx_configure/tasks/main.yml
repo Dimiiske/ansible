@@ -1,0 +1,38 @@
+---
+- name: copy nginx.conf
+  copy:
+    src: files/config/nginx.conf
+    dest: /etc/nginx/nginx.conf
+  notify:
+    - check configs
+    - reload nginx
+
+- name: copy certs
+  copy:
+    src: files/certs/
+    dest: /etc/nginx/ssl/
+  notify:
+    - check configs
+    - reload nginx
+
+- name: copy configs
+  copy:
+    src: files/sites-available
+    dest: /etc/nginx/sites-available
+  notify:
+    - check configs
+    - reload nginx
+
+- name: List files in the directory
+  file:
+    path: /etc/nginx/sites-available
+    state: directory
+  register: files
+
+- name: Create symlinks for files without existing links
+  command: "ln -s /etc/nginx/sites-available/{{ item }} /etc/nginx/sites-enabled/{{ item }}"
+  when: not lookup('file', '/etc/nginx/sites-enabled/{{ item }}', errors='ignore')
+  loop: "{{ files.files | map(attribute='path') | list }}"
+  notify:
+    - check configs
+    - reload nginx

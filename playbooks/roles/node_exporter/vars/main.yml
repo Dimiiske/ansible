@@ -1,0 +1,13 @@
+---
+url_release: "https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz"
+node_exporter_path: "/usr/local/bin/node_exporter"
+node_exporter_restart: "on-failure"
+node_exporter_version: "1.7.0"
+node_exporter_arch: "amd64"
+node_exporter_state: started
+node_exporter_enabled: true
+
+node_exporter_host: ''
+node_exporter_port: 9100
+node_exporter_options: ''
+

@@ -1,0 +1,27 @@
+---
+- name: Add user to remote hosts
+  user:
+    name: "{{ item.user }}"
+    password: "{{ item.password }}"
+    groups:
+      - docker
+      - sudo
+      - adm
+    shell: /bin/bash
+    with_items: "{{ users }}"
+
+- name: Add authorized keys of the users
+  authorized_key:
+    user: "{{ item.user }}"
+    state: present
+    key: "{{ item.key }}"
+    with_items: "{{ users }}"
+
+- name: Replace sudoers file
+  template:
+    src: 'templates/sudoers.j2'
+    dest: '/etc/sudoers.d/{{ item.name }}'
+    owner: root
+    group: root
+    mode: '0440'
+    with_items: "{{ users }}"

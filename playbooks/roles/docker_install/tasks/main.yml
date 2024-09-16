@@ -1,0 +1,6 @@
+---
+- name: get installing script
+  shell: 'curl -fsSL "https://get.docker.com" -o get-docker.sh'
+
+- name: install docker by script
+  shell: 'sh get-docker.sh'
